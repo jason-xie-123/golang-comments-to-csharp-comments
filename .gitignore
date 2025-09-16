@@ -1,0 +1,6 @@
+import/bin/**
+import/obj/**
+
+release/**
+
+.DS_Store

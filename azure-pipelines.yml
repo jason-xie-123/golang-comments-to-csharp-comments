@@ -1,0 +1,49 @@
+pool:
+  vmImage: 'macOS-14'
+
+steps:
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/config/gh-config.sh" -token $(ENV_GH_TOKEN)'
+  displayName: config gh
+
+- task: GoTool@0
+  inputs:
+    version: '1.20.14'
+
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/build/clean-build-cache.sh"'
+  displayName: clean build cache
+
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/build/build-export.sh"'
+  displayName: build export
+
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/build/build-import.sh"'
+  displayName: build import
+
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/build/compress-release.sh"'
+  displayName: compress release
+
+- task: CmdLine@2
+  inputs:
+    script: '"$(System.DefaultWorkingDirectory)/scripts/upload/upload-to-github.sh"'
+  displayName: upload release
+
+- task: CmdLine@2
+  inputs:
+    script: 'cp -r "$(System.DefaultWorkingDirectory)/release" "$(Build.artifactStagingDirectory)"'
+  displayName: Copying releases to Artifacts Directory
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Uploading Artifacts Directory for the Current Run'
+  inputs:
+    PathtoPublish: '$(Build.artifactStagingDirectory)'
+    ArtifactName: 'GeneratedResult'
+    PublishLocation: Container
