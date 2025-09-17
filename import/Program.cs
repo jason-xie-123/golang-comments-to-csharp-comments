@@ -14,9 +14,9 @@ class FuncDoc
     public string doc { get; set; } = string.Empty;
 }
 
-class Godoc
+class GoDoc
 {
-    public List<FuncDoc> funcs { get; set; } = new List<FuncDoc>();
+    public List<FuncDoc> funDocs { get; set; } = new List<FuncDoc>();
 }
 
 class Options
@@ -32,29 +32,29 @@ class Program
 {
     static void Main(string[] args)
     {
-         Parser.Default.ParseArguments<Options>(args)
-            .WithParsed(options =>
-            {
-                SyncComments(options.CsFile, options.JsonFile);
-            });
+        Parser.Default.ParseArguments<Options>(args)
+           .WithParsed(options =>
+           {
+               SyncComments(options.CsFile, options.JsonFile);
+           });
     }
 
     static void SyncComments(string csFilePath, string jsonFilePath)
     {
-         if (!File.Exists(csFilePath))
+        if (!File.Exists(csFilePath))
         {
             Console.WriteLine("CSharpFile.cs does not exist");
             return;
         }
 
-         if (!File.Exists(jsonFilePath))
+        if (!File.Exists(jsonFilePath))
         {
             Console.WriteLine("GoJsonFile.json does not exist");
             return;
         }
 
         var json = File.ReadAllText(jsonFilePath);
-        var godoc = JsonSerializer.Deserialize<Godoc>(json);
+        var goDoc = JsonSerializer.Deserialize<GoDoc>(json);
 
         string code = File.ReadAllText(csFilePath);
         var tree = CSharpSyntaxTree.ParseText(code);
@@ -67,14 +67,24 @@ class Program
         {
             var methodName = method.Identifier.Text;
 
-            if (godoc?.funcs == null) continue;
+            if (goDoc?.funDocs == null) continue;
 
-            var docEntry = godoc.funcs.Find(f => f.name == methodName);
+            var docEntry = goDoc.funDocs.Find(f => f.name == methodName);
             if (docEntry == null) continue;
 
-            var docLines = docEntry.doc.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                                       .Select(line => "/// " + line.Trim());
-            var xmlCommentText = "/// <summary>\n" + string.Join("\n", docLines) + "\n/// </summary>\n";
+            var paramLines = method.ParameterList.Parameters
+                                 .Select(p =>
+                                    {
+                                        var paramName = p.Identifier.Text;
+                                        var paramType = p.Type?.ToString() ?? "UnknownType";
+                                        return $"/// <param name=\"{paramName}\"><see cref=\"{paramType}\"/>parameter</param>";
+                                    });
+            var docLines = docEntry.doc.Split('\n')
+                                       .Select(line => "/// " + line);
+            var xmlCommentText = "/// <summary>\n"
+                         + string.Join("\n", docLines) + "\n"
+                         + "/// </summary>\n"
+                         + string.Join("\n", paramLines) + "\n";
 
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(xmlCommentText);
 

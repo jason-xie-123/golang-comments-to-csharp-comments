@@ -66,7 +66,7 @@ func main() {
 					if isExported(f.Name) && len(f.Doc) > 0 {
 						funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 							Name: f.Name,
-							Doc:  f.Doc,
+							Doc:  strings.TrimRight(f.Doc, "\r\n"),
 						})
 					}
 				}
@@ -76,7 +76,7 @@ func main() {
 						if isExported(t.Name) && isExported(m.Name) && len(m.Doc) > 0 {
 							funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 								Name: fmt.Sprintf("%s.%s", t.Name, m.Name),
-								Doc:  m.Doc,
+								Doc:  strings.TrimRight(m.Doc, "\r\n"),
 							})
 						}
 					}
