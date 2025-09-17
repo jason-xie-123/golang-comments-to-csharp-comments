@@ -21,7 +21,7 @@ type FuncComment struct {
 }
 
 type FuncComments struct {
-	Funcs []FuncComment `json:"funcs"`
+	Funcs []FuncComment `json:"funComments"`
 }
 
 func main() {
