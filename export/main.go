@@ -91,6 +91,10 @@ func main() {
 											Name: fmt.Sprintf("%s%s", t.Name, name.Name),
 											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
 										})
+										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+											Name: fmt.Sprintf("%s%sInterface", t.Name, name.Name),
+											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
+										})
 									}
 								}
 							}

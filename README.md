@@ -9,7 +9,7 @@ USAGE:
    comments-sync-golang-export [global options] command [command options]
 
 VERSION:
-   0.1.4
+   0.1.5
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
@@ -23,7 +23,7 @@ GLOBAL OPTIONS:
 
 ```
 ./comments-sync-csharp-import -h
-comments-sync-csharp-import 0.1.4
+comments-sync-csharp-import 0.1.5
 Copyright (C) 2025 comments-sync-csharp-import
 
 ERROR(S):
