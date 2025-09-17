@@ -4,3 +4,5 @@ import/obj/**
 release/**
 
 .DS_Store
+
+.vs

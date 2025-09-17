@@ -78,8 +78,12 @@ class Program
 
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(xmlCommentText);
 
-            var newMethod = method.WithLeadingTrivia(leadingTrivia);
-            newRoot = newRoot.ReplaceNode(method, newMethod);
+            var targetMethod = newRoot.DescendantNodes()
+                              .OfType<MethodDeclarationSyntax>()
+                              .First(m => m.Identifier.Text == methodName);
+
+            var newMethod = targetMethod.WithLeadingTrivia(leadingTrivia);
+            newRoot = newRoot.ReplaceNode(targetMethod, newMethod);
         }
 
         File.WriteAllText(csFilePath, newRoot.NormalizeWhitespace().ToFullString());
