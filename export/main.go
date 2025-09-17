@@ -4,6 +4,7 @@ import (
 	packageVersion "code-comments-sync/version"
 	"encoding/json"
 	"fmt"
+	"go/ast"
 	"go/doc"
 	"go/parser"
 	"go/token"
@@ -80,6 +81,22 @@ func main() {
 							})
 						}
 					}
+
+					for _, s := range t.Decl.Specs {
+						if iFace, ok := s.(*ast.TypeSpec).Type.(*ast.InterfaceType); ok {
+							for _, field := range iFace.Methods.List {
+								for _, name := range field.Names {
+									if isExported(t.Name) && isExported(name.Name) && len(field.Doc.Text()) > 0 {
+										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+											Name: fmt.Sprintf("%s%s", t.Name, name.Name),
+											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
+										})
+									}
+								}
+							}
+						}
+					}
+
 				}
 			}
 
