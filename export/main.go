@@ -69,6 +69,10 @@ func main() {
 							Name: f.Name,
 							Doc:  strings.TrimRight(f.Doc, "\r\n"),
 						})
+						funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+							Name: fmt.Sprintf("%sEx", f.Name),
+							Doc:  strings.TrimRight(f.Doc, "\r\n"),
+						})
 					}
 				}
 
@@ -77,6 +81,10 @@ func main() {
 						if isExported(t.Name) && isExported(m.Name) && len(m.Doc) > 0 {
 							funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 								Name: fmt.Sprintf("%s.%s", t.Name, m.Name),
+								Doc:  strings.TrimRight(m.Doc, "\r\n"),
+							})
+							funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+								Name: fmt.Sprintf("%s.%sEx", t.Name, m.Name),
 								Doc:  strings.TrimRight(m.Doc, "\r\n"),
 							})
 						}
@@ -89,6 +97,10 @@ func main() {
 									if isExported(t.Name) && isExported(name.Name) && len(field.Doc.Text()) > 0 {
 										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 											Name: fmt.Sprintf("%s%s", t.Name, name.Name),
+											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
+										})
+										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+											Name: fmt.Sprintf("%s%sEx", t.Name, name.Name),
 											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
 										})
 										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
