@@ -77,6 +77,10 @@ func main() {
 							Name: fmt.Sprintf("%sAsync", f.Name),
 							Doc:  strings.TrimRight(f.Doc, "\r\n"),
 						})
+						funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+							Name: fmt.Sprintf("%sExAsync", f.Name),
+							Doc:  strings.TrimRight(f.Doc, "\r\n"),
+						})
 					}
 				}
 
@@ -93,6 +97,10 @@ func main() {
 							})
 							funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 								Name: fmt.Sprintf("%s.%sAsync", t.Name, m.Name),
+								Doc:  strings.TrimRight(m.Doc, "\r\n"),
+							})
+							funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+								Name: fmt.Sprintf("%s.%sExAsync", t.Name, m.Name),
 								Doc:  strings.TrimRight(m.Doc, "\r\n"),
 							})
 						}
@@ -117,6 +125,10 @@ func main() {
 										})
 										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
 											Name: fmt.Sprintf("%s%sAsync", t.Name, name.Name),
+											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
+										})
+										funcComments.Funcs = append(funcComments.Funcs, FuncComment{
+											Name: fmt.Sprintf("%s%sExAsync", t.Name, name.Name),
 											Doc:  strings.TrimRight(field.Doc.Text(), "\r\n"),
 										})
 									}
