@@ -78,7 +78,7 @@ class Program
             var methodName = method.Identifier.Text;
 
             var existingTrivia = method.GetLeadingTrivia().ToFullString().Trim();
-            FuncDoc docEntry = goDoc?.funComments?.Find(f => f.name == methodName);
+            FuncDoc? docEntry = goDoc?.funComments?.Find(f => f.name == methodName);
 
             if (!overwrite && !string.IsNullOrEmpty(existingTrivia))
             {
@@ -109,7 +109,8 @@ class Program
                                         {
                                             var paramName = p.Identifier.Text;
                                             var paramType = p.Type?.ToString() ?? "UnknownType";
-                                            return $"/// <param name=\"{paramName}\"><see cref=\"{paramType}\"/>parameter</param>";
+                                            var innermostParamType = GetInnermostType(paramType);
+                                            return $"/// <param name=\"{paramName}\"><see cref=\"{innermostParamType}\"/>parameter</param>";
                                         });
                 paramSection = string.Join(eolSign, paramLines);
             }
@@ -118,7 +119,8 @@ class Program
             string returnsLine = string.Empty;
             if (returnType != "void")
             {
-                returnsLine = $"/// <returns><see cref=\"{returnType}\"/> return value</returns>";
+                var innermostReturnType = GetInnermostType(returnType);
+                returnsLine = $"/// <returns><see cref=\"{innermostReturnType}\"/> {returnType} </returns>";
             }
 
             var xmlCommentText = summaryText;
@@ -149,7 +151,7 @@ class Program
             var delegateName = del.Identifier.Text;
 
             var existingTrivia = del.GetLeadingTrivia().ToFullString().Trim();
-            FuncDoc docEntry = goDoc?.funComments?.Find(f => f.name == delegateName);
+            FuncDoc? docEntry = goDoc?.funComments?.Find(f => f.name == delegateName);
 
             if (!overwrite && !string.IsNullOrEmpty(existingTrivia))
             {
@@ -180,7 +182,8 @@ class Program
                     {
                         var paramName = p.Identifier.Text;
                         var paramType = p.Type?.ToString() ?? "UnknownType";
-                        return $"/// <param name=\"{paramName}\"><see cref=\"{paramType}\"/> parameter</param>";
+                        var innermostParamType = GetInnermostType(paramType);
+                        return $"/// <param name=\"{paramName}\"><see cref=\"{innermostParamType}\"/> parameter </param>";
                     });
                 paramSection = string.Join(eolSign, paramLines);
             }
@@ -189,7 +192,8 @@ class Program
             string returnsLine = string.Empty;
             if (returnType != "void")
             {
-                returnsLine = $"/// <returns><see cref=\"{returnType}\"/> return value</returns>";
+                var innermostReturnType = GetInnermostType(returnType);
+                returnsLine = $"/// <returns><see cref=\"{innermostReturnType}\"/> {returnType} </returns>";
             }
 
             string xmlCommentText = summaryText;
@@ -213,5 +217,17 @@ class Program
 
         File.WriteAllText(csFilePath, formattedCode);
         Console.WriteLine("Comments synchronized successfully.");
+    }
+
+    // 获取最内层类型，比如 Task<APIAgentAPICallResponseBody> -> APIAgentAPICallResponseBody
+    static string GetInnermostType(string typeName)
+    {
+        int left = typeName.IndexOf('<');
+        int right = typeName.LastIndexOf('>');
+        if (left >= 0 && right > left)
+        {
+            return GetInnermostType(typeName.Substring(left + 1, right - left - 1).Trim());
+        }
+        return typeName;
     }
 }
