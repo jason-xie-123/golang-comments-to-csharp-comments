@@ -13,4 +13,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Exclude the test project's sources; it lives in a subdirectory and would
+         otherwise be picked up by this project's default file globbing. -->
+    <Compile Remove="SyncGoComments.Tests/**/*.cs" />
+  </ItemGroup>
+
 </Project>
