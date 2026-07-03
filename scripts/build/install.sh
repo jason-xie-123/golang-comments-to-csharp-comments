@@ -7,11 +7,8 @@ SHELL_FOLDER=$(
 )
 PROJECT_FOLDER=$SHELL_FOLDER/../..
 
-cd "$SHELL_FOLDER" || exit >/dev/null 2>&1
+cd "$PROJECT_FOLDER/export" || exit >/dev/null 2>&1
 
-# shellcheck source=/dev/null
-source "$PROJECT_FOLDER/scripts/base/env.sh"
-
-go install code-comments-sync
+go install ./cmd/comments-sync-golang-export
 
 cd "$OLD_PWD" || exit >/dev/null 2>&1

@@ -8,8 +8,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using CommandLine;
 using System.Text.Json.Serialization;
+using System.Runtime.CompilerServices;
 
-class FuncDoc
+[assembly: InternalsVisibleTo("SyncGoComments.Tests")]
+
+internal class FuncDoc
 {
     [JsonPropertyName("name")]
     public string name { get; set; } = string.Empty;
@@ -17,7 +20,7 @@ class FuncDoc
     public string doc { get; set; } = string.Empty;
 }
 
-class GoDoc
+internal class GoDoc
 {
     [JsonPropertyName("funComments")]
     public List<FuncDoc> funComments { get; set; } = new List<FuncDoc>();
@@ -36,7 +39,7 @@ class Options
 
 }
 
-class Program
+internal class Program
 {
     private static readonly string eolSign = "\r\n";
 
@@ -67,6 +70,17 @@ class Program
         var goDoc = JsonSerializer.Deserialize<GoDoc>(json);
 
         string code = File.ReadAllText(csFilePath);
+        var formattedCode = SyncCommentsCode(code, goDoc, overwrite);
+
+        File.WriteAllText(csFilePath, formattedCode);
+        Console.WriteLine("Comments synchronized successfully.");
+    }
+
+    // SyncCommentsCode injects XML doc comments (from goDoc) into the methods and
+    // delegates found in code, and returns the resulting source text. It performs
+    // no file I/O, which is what makes it unit-testable in isolation.
+    internal static string SyncCommentsCode(string code, GoDoc? goDoc, bool overwrite)
+    {
         var tree = CSharpSyntaxTree.ParseText(code);
         var root = tree.GetRoot();
 
@@ -212,14 +226,11 @@ class Program
             newRoot = newRoot.ReplaceNode(targetDelegate, newDelegate);
         }
 
-        var formattedCode = newRoot.NormalizeWhitespace(indentation: "    ", eol: eolSign)
-                               .ToFullString();
-
-        File.WriteAllText(csFilePath, formattedCode);
-        Console.WriteLine("Comments synchronized successfully.");
+        return newRoot.NormalizeWhitespace(indentation: "    ", eol: eolSign)
+                      .ToFullString();
     }
 
-    // 获取最内层类型，比如 Task<APIAgentAPICallResponseBody> -> APIAgentAPICallResponseBody
+    // Gets the innermost generic type, e.g. Task<APIAgentAPICallResponseBody> -> APIAgentAPICallResponseBody
     static string GetInnermostType(string typeName)
     {
         int left = typeName.IndexOf('<');

@@ -24,7 +24,7 @@ BUILD_PARAMETER="-ldflags '-w -s' -trimpath"
 # BUILD_PARAMETER=""
 
 # Windows amd64
-COMMAND="GOOS=windows GOARCH=amd64 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-amd64/${TARGET_NAME}.exe"
+COMMAND="GOOS=windows GOARCH=amd64 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-amd64/${TARGET_NAME}.exe ./cmd/comments-sync-golang-export"
 echo exec: "$COMMAND"
 if eval "$COMMAND"; then
     echo "Windows amd64 binary compiled successfully."
@@ -33,7 +33,7 @@ else
     exit 1
 fi
 # Windows 32-bit
-COMMAND="GOOS=windows GOARCH=386 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-386/${TARGET_NAME}.exe"
+COMMAND="GOOS=windows GOARCH=386 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-386/${TARGET_NAME}.exe ./cmd/comments-sync-golang-export"
 echo exec: "$COMMAND"
 if eval "$COMMAND"; then
     echo "Windows 32-bit binary compiled successfully."
@@ -42,7 +42,7 @@ else
     exit 1
 fi
 # Windows ARM
-COMMAND="GOOS=windows GOARCH=arm64 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-arm64/${TARGET_NAME}.exe"
+COMMAND="GOOS=windows GOARCH=arm64 go build $BUILD_PARAMETER -o $RELEASE_DIR/windows-arm64/${TARGET_NAME}.exe ./cmd/comments-sync-golang-export"
 echo exec: "$COMMAND"
 if eval "$COMMAND"; then
     echo "Windows ARM binary compiled successfully."
@@ -52,7 +52,7 @@ else
 fi
 
 # darwin amd64
-COMMAND="GOOS=darwin GOARCH=amd64 go build $BUILD_PARAMETER -o $RELEASE_DIR/darwin-amd64/${TARGET_NAME}"
+COMMAND="GOOS=darwin GOARCH=amd64 go build $BUILD_PARAMETER -o $RELEASE_DIR/darwin-amd64/${TARGET_NAME} ./cmd/comments-sync-golang-export"
 echo exec: "$COMMAND"
 if eval "$COMMAND"; then
     echo "darwin amd64 binary compiled successfully."
@@ -61,7 +61,7 @@ else
     exit 1
 fi
 # darwin ARM
-COMMAND="GOOS=darwin GOARCH=arm64 go build $BUILD_PARAMETER -o $RELEASE_DIR/darwin-arm64/${TARGET_NAME}"
+COMMAND="GOOS=darwin GOARCH=arm64 go build $BUILD_PARAMETER -o $RELEASE_DIR/darwin-arm64/${TARGET_NAME} ./cmd/comments-sync-golang-export"
 echo exec: "$COMMAND"
 if eval "$COMMAND"; then
     echo "darwin ARM binary compiled successfully."
