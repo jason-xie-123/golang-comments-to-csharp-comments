@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.20'
+          cache-dependency-path: export/go.sum
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Verify release notes exist
+        run: |
+          if [ ! -s release_notes.md ]; then
+            echo "release_notes.md is missing or empty — draft it locally before tagging (see AGENTS.md)."
+            exit 1
+          fi
+
+      - name: Run Go tests
+        working-directory: export
+        run: go test ./...
+
+      - name: Run .NET tests
+        working-directory: import
+        run: dotnet test SyncGoComments.Tests/SyncGoComments.Tests.csproj
+
+      - name: Cross-compile Go tool (comments-sync-golang-export)
+        working-directory: export
+        env:
+          TARGET_NAME: comments-sync-golang-export
+        run: |
+          set -e
+          RELEASE_DIR="$GITHUB_WORKSPACE/release"
+          GOOS=windows GOARCH=amd64 go build -ldflags '-w -s' -trimpath -o "$RELEASE_DIR/windows-amd64/${TARGET_NAME}.exe" ./cmd/comments-sync-golang-export
+          GOOS=windows GOARCH=386   go build -ldflags '-w -s' -trimpath -o "$RELEASE_DIR/windows-386/${TARGET_NAME}.exe"   ./cmd/comments-sync-golang-export
+          GOOS=windows GOARCH=arm64 go build -ldflags '-w -s' -trimpath -o "$RELEASE_DIR/windows-arm64/${TARGET_NAME}.exe" ./cmd/comments-sync-golang-export
+          GOOS=darwin  GOARCH=amd64 go build -ldflags '-w -s' -trimpath -o "$RELEASE_DIR/darwin-amd64/${TARGET_NAME}"      ./cmd/comments-sync-golang-export
+          GOOS=darwin  GOARCH=arm64 go build -ldflags '-w -s' -trimpath -o "$RELEASE_DIR/darwin-arm64/${TARGET_NAME}"      ./cmd/comments-sync-golang-export
+
+      - name: Cross-publish .NET tool (comments-sync-csharp-import)
+        working-directory: import
+        env:
+          TARGET_NAME: comments-sync-csharp-import
+        run: |
+          set -e
+          RELEASE_DIR="$GITHUB_WORKSPACE/release"
+
+          dotnet publish -c Release -r win-x64   --self-contained false -p:PublishSingleFile=true "-p:AssemblyName=$TARGET_NAME" -o "$RELEASE_DIR/windows-amd64/" SyncGoComments.csproj
+          dotnet publish -c Release -r win-x86   --self-contained false -p:PublishSingleFile=true "-p:AssemblyName=$TARGET_NAME" -o "$RELEASE_DIR/windows-386/"  SyncGoComments.csproj
+          dotnet publish -c Release -r win-arm64 --self-contained false -p:PublishSingleFile=true "-p:AssemblyName=$TARGET_NAME" -o "$RELEASE_DIR/windows-arm64/" SyncGoComments.csproj
+          dotnet publish -c Release -r osx-x64   --self-contained true  -p:PublishSingleFile=true "-p:AssemblyName=$TARGET_NAME" -o "$RELEASE_DIR/darwin-amd64/" SyncGoComments.csproj
+          dotnet publish -c Release -r osx-arm64 --self-contained true  -p:PublishSingleFile=true "-p:AssemblyName=$TARGET_NAME" -o "$RELEASE_DIR/darwin-arm64/" SyncGoComments.csproj
+
+          rm -f "$RELEASE_DIR"/windows-*/*.pdb "$RELEASE_DIR"/darwin-*/*.pdb
+
+      - name: Verify both tools are present in every platform directory
+        run: |
+          set -e
+          for dir in windows-386 windows-amd64 windows-arm64; do
+            test -f "release/$dir/comments-sync-golang-export.exe" || { echo "missing Go binary in $dir"; exit 1; }
+            test -f "release/$dir/comments-sync-csharp-import.exe" || { echo "missing .NET binary in $dir"; exit 1; }
+          done
+          for dir in darwin-amd64 darwin-arm64; do
+            test -f "release/$dir/comments-sync-golang-export" || { echo "missing Go binary in $dir"; exit 1; }
+            test -f "release/$dir/comments-sync-csharp-import" || { echo "missing .NET binary in $dir"; exit 1; }
+          done
+          echo "All platform directories contain both tools."
+
+      - name: Package release archives
+        run: |
+          set -e
+          RELEASE_DIR="$GITHUB_WORKSPACE/release"
+
+          for arch in windows-386 windows-amd64 windows-arm64; do
+            (cd "$RELEASE_DIR/$arch" && zip -r "$RELEASE_DIR/golang-comments-sync-${arch}.zip" ./*)
+            rm -rf "${RELEASE_DIR:?}/$arch"
+          done
+
+          for arch in darwin-amd64 darwin-arm64; do
+            tar -zcvf "$RELEASE_DIR/golang-comments-sync-${arch}.tar.gz" -C "$RELEASE_DIR/$arch" "."
+            rm -rf "${RELEASE_DIR:?}/$arch"
+          done
+
+          ls -lh "$RELEASE_DIR"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "Release ${{ github.ref_name }}" \
+            --notes-file release_notes.md \
+            release/*
