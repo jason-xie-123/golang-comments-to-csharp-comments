@@ -7,7 +7,7 @@ Guidance for AI coding assistants (Claude Code, Codex, etc.) working in this rep
 - `export/` — a Go module (`code-comments-sync`) that parses Go source and extracts doc comments to JSON.
 - `import/` — a .NET 7 project (`SyncGoComments`) that injects that JSON's doc comments into C# source via Roslyn.
 
-They don't share a build system, a `go.work`, or a solution file. Treat them as two separate projects that happen to live in one repo and are released together.
+They don't share a build system or a solution file — the root `go.work` only covers `export/` (there's no .NET equivalent unifying the two). Treat them as two separate projects that happen to live in one repo and are released together.
 
 ## Release artifacts merge both tools into one archive per platform
 

@@ -31,7 +31,7 @@ GLOBAL OPTIONS:
 ```
 
 ```
-comments-sync-csharp-import -h
+comments-sync-csharp-import --help
   -c, --cs      Required. C# source file path
   -j, --json    Required. Go comments JSON file path
   --overwrite   Overwrite existing comments (default: keep existing comments if no matching Go doc is found)
