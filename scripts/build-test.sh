@@ -59,18 +59,4 @@ if ! eval "$COMMAND"; then
     exit 1
 fi
 
-COMMAND="\"$PROJECT_FOLDER/scripts/upload/upload-to-github.sh\""
-echo exec: "$COMMAND"
-if ! eval "$COMMAND"; then
-    echo ""
-    echo ""
-    echo "[ERROR]: failed to upload to GitHub"
-    echo ""
-    echo "" 
-
-    exit 1
-fi
-
-
-
 cd "$OLD_PWD" || exit >/dev/null 2>&1
